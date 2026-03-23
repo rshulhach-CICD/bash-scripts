@@ -32,7 +32,7 @@ COMMENT="${@}"
 PASSWORD=$(date +%s%N | sha256sum | head -c16)
 
 # Create the user with the password.
-useradd -c "${COMMENT}" -m ${USER_NAME}
+useradd -c "${COMMENT}" -m "${USER_NAME}"
 
 # Check to see if the useradd command succeeded.
 # We don't want to tell the user that an account was created when it hasn't been.
@@ -43,7 +43,7 @@ then
 fi
 
 # Set the password.
-echo ${PASSWORD} | passwd --stdin ${USER_NAME}
+echo "${PASSWORD}" | passwd --stdin "${USER_NAME}"
 
 # Check to see if the passwd command succeeded.
 if [[ "${?}" -ne 0 ]]
@@ -53,7 +53,7 @@ then
 fi
 
 # Force password change on first login.
-passwd -e ${USER_NAME}
+passwd -e "${USER_NAME}"
 
 # Display the username, password, and the host where the user was created.
 echo
