@@ -6,7 +6,7 @@
 # A password will be automatically generated for the account.
 # The username, password, and host for the account will be displayed.
 
-# Make sure the script is beign executed with superuser privileges.
+# Make sure the script is executed with superuser privileges.
 if [[ "${UID}" -ne 0 ]]
 then
   echo "Please run with sudo or as root." >&2
@@ -17,7 +17,7 @@ fi
 if [[ "${#}" -lt 1 ]]
 then
   echo "Usage: ${0} USER_NAME [COMMENT]..." >&2 
-  echo 'Create an account on the local system with the name of USER_NAME and a comments field of COMMENT.' >&2
+  echo 'Create an account on the local system with the name of USER_NAME and a comment field of COMMENT.' >&2
   exit 1
 fi
 
@@ -32,7 +32,7 @@ COMMENT="${@}"
 PASSWORD=$(date +%s%N | sha256sum | head -c16)
 
 # Create the user with the password.
-useradd -c "${COMMENT}" -m ${USER_NAME} &> /dev/null
+useradd -c "${COMMENT}" -m "${USER_NAME}" &> /dev/null
 
 # Check to see if the useradd command succeeded.
 # We don't want to tell the user that an account was created when it hasn't been.
@@ -43,7 +43,7 @@ then
 fi
 
 # Set the password.
-echo ${PASSWORD} | passwd --stdin ${USER_NAME} &> /dev/null
+echo "${PASSWORD}" | passwd --stdin "${USER_NAME}" &> /dev/null
 
 # Check to see if the passwd command succeeded.
 if [[ "${?}" -ne 0 ]]
@@ -53,7 +53,7 @@ then
 fi
 
 # Force password change on first login.
-passwd -e ${USER_NAME} &> /dev/null
+passwd -e "${USER_NAME}" &> /dev/null
 
 # Display the username, password, and the host where the user was created.
 echo "username:"
