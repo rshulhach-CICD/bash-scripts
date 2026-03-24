@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# This script disables, deletee, and/or archives user(s) on the local system.
+# This script disables, deletes, and/or archives user(s) on the local system.
 
 readonly ARCHIVE_DIR='/archive'
 
 usage() {
   # Display the usage and exit.
-  echo "Usage: ${0} [-dra] USER [USERN]..." >&2
+  echo "Usage: ${0} [-dra] USER [USER]..." >&2
   echo 'Disable a local Linux account(s).' >&2
   echo '  -d  Deletes account(s) instead of disabling them.' >&2
   echo '  -r  Removes the home directory associated with the account(s).' >&2
@@ -24,7 +24,7 @@ fi
 # Parse the options
 while getopts dra OPTION
 do
-  case ${OPTION} in
+  case "${OPTION}" in
     d) DELETE_USER='true' ;;
     r) REMOVE_OPTION='-r' ;;
     a) ARCHIVE='true' ;;
@@ -47,7 +47,11 @@ do
   echo "Processing user: ${USERNAME}"
 
   # Make sure the UID of the account is at least 1000.
-  USERID=$(id -u ${USERNAME})
+  if ! USERID=$(id -u "${USERNAME}" 2> /dev/null)
+  then
+    echo "The account ${USERNAME} does not exist." >&2
+    exit 1
+  fi
   if [[ "${USERID}" -lt 1000 ]]
   then
     echo "Refusing to remove the ${USERNAME} account with UID ${USERID}." >&2
@@ -61,7 +65,7 @@ do
     if [[ ! -d "${ARCHIVE_DIR}" ]]
     then
       echo "Creating ${ARCHIVE_DIR} directory."
-      mkdir -p ${ARCIVE_DIR}
+      mkdir -p "${ARCHIVE_DIR}"
       if [[ "${?}" -ne 0 ]]
       then
         echo "The archive directory ${ARCHIVE_DIR} could not be created." >&2
@@ -72,10 +76,10 @@ do
     # Archive the user's home directory and move it into the ARCHIVE_DIR
     HOME_DIR="/home/${USERNAME}"
     ARCHIVE_FILE="${ARCHIVE_DIR}/${USERNAME}.tgz"
-    if [[ -d "{HOME_DIR}" ]]
+    if [[ -d "${HOME_DIR}" ]]
     then
       echo "Archiving ${HOME_DIR} to ${ARCHIVE_FILE}"
-      tar -zcf ${ARCHIVE_FILE} ${HOME_DIR} &> /dev/null
+      tar -zcf "${ARCHIVE_FILE}" "${HOME_DIR}" &> /dev/null
       if [[ "${?}" -ne 0 ]]
       then
         echo "Could not create ${ARCHIVE_FILE}." >&2
@@ -90,7 +94,7 @@ do
   if [[ "${DELETE_USER}" = 'true' ]]
   then
     # Delete the user
-    userdel ${REMOVE_OPTION} ${USERNAME}
+    userdel "${REMOVE_OPTION}" "${USERNAME}"
     
     # Check to see if the userdel command succeeded.
     if [[ "${?}" -ne 0 ]]
@@ -100,7 +104,7 @@ do
     fi
     echo "The account ${USERNAME} was deleted."
   else
-    chage -E 0 ${USERNAME}
+    chage -E 0 "${USERNAME}"
     
     # Check to see if the chage command succeeded.
     if [[ "${?}" -ne 0 ]]
@@ -113,4 +117,3 @@ do
 done
 
 exit 0
-
