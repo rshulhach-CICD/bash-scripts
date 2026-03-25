@@ -10,14 +10,31 @@ usage() {
   exit 1
 }
 
+if [[ "${#}" -ne 2 ]]
+then
+  usage
+fi
+
 LOG_FILE="${1}"
 LIMIT="${2}"
 POSITION=3
 
+if ! [[ "${LIMIT}" =~ ^[0-9]+$ ]]
+then
+  echo "The limit must be a non-negative integer." >&2
+  exit 1
+fi
+
 # Make sure a file was supplied as an argument.
-if [[ ! -e "${LOG_FILE}" ]]
+if [[ ! -f "${LOG_FILE}" ]]
 then
   echo "Cannot open log file: ${LOG_FILE}" >&2
+  exit 1
+fi
+
+if ! command -v geoiplookup &> /dev/null
+then
+  echo 'The geoiplookup command is required but not installed.' >&2
   exit 1
 fi
 
@@ -25,14 +42,13 @@ fi
 echo 'Count,IP,Location'
 
 # Loop through the list of failed attempts and corresponding IP addresses.
-grep Failed ${LOG_FILE} | awk '{print $(NF - POSITION)' | sort | uniq -c | sort -nr | while read COUNT IP
+grep 'Failed' "${LOG_FILE}" | awk -v position="${POSITION}" '{print $(NF - position)}' | sort | uniq -c | sort -nr | while read -r COUNT IP
 do
   # If the number of failed attempts is greater than the limit, display count, IP, and location.
   if [[ "${COUNT}" -gt "${LIMIT}" ]]
   then
-    LOCATION=$(geoiplookup ${IP} | awk -F ', ' '{print $2}')
+    LOCATION=$(geoiplookup "${IP}" | awk -F ', ' '{print $2}')
     echo "${COUNT},${IP},${LOCATION}"
   fi
 done
 exit 0
-
