@@ -14,6 +14,16 @@ usage() {
   exit 1
 }
 
+exit_on_error() {
+  local ERROR_MESSAGE="${1}"
+
+  if [[ "${?}" -ne 0 ]]
+  then
+    echo "${ERROR_MESSAGE}" >&2
+    exit 1
+  fi
+}
+
 # Make sure the script is being executed with superuser privileges.
 if [[ "${UID}" -ne 0 ]]
 then
@@ -66,11 +76,7 @@ do
     then
       echo "Creating ${ARCHIVE_DIR} directory."
       mkdir -p "${ARCHIVE_DIR}"
-      if [[ "${?}" -ne 0 ]]
-      then
-        echo "The archive directory ${ARCHIVE_DIR} could not be created." >&2
-        exit 1
-      fi
+      exit_on_error "The archive directory ${ARCHIVE_DIR} could not be created."
     fi
 
     # Archive the user's home directory and move it into the ARCHIVE_DIR
@@ -80,11 +86,7 @@ do
     then
       echo "Archiving ${HOME_DIR} to ${ARCHIVE_FILE}"
       tar -zcf "${ARCHIVE_FILE}" "${HOME_DIR}" &> /dev/null
-      if [[ "${?}" -ne 0 ]]
-      then
-        echo "Could not create ${ARCHIVE_FILE}." >&2
-        exit 1
-      fi
+      exit_on_error "Could not create ${ARCHIVE_FILE}."
     else
       echo "${HOME_DIR} does not exist or is not a directory." >&2
       exit 1
@@ -97,11 +99,7 @@ do
     userdel "${REMOVE_OPTION}" "${USERNAME}"
     
     # Check to see if the userdel command succeeded.
-    if [[ "${?}" -ne 0 ]]
-    then
-      echo "The account ${USERNAME} was NOT deleted." >&2
-      exit 1
-    fi
+    exit_on_error "The account ${USERNAME} was not deleted."
     echo "The account ${USERNAME} was deleted."
   else
     chage -E 0 "${USERNAME}"
