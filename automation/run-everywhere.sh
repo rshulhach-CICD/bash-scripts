@@ -17,7 +17,7 @@ usage() {
   exit 1
 }
 
-# Make sure the script is not begin executed with the superuser privileges.
+# Make sure the script is not being executed with the superuser privileges.
 if [[ "${UID}" -eq 0 ]]
 then
   echo 'Do not execute this script as root. Use the -s option instead.' >&2
@@ -45,7 +45,7 @@ then
   usage
 fi
 
-# Anyting that remains on the command line is to be treated as a single command.
+# Anything that remains on the command line is to be treated as a single command.
 COMMAND="${@}"
 
 # Make sure the SERVER_LIST file exists.
@@ -86,4 +86,3 @@ do
 done
 
 exit "${EXIT_STATUS}"
-
